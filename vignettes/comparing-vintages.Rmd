@@ -1,0 +1,152 @@
+---
+title: "Comparing REQ vintages"
+description: "Separate history revisions, forecast revisions and forecast errors."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Comparing REQ vintages}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Vintage analysis answers different questions. A history revision compares
+two realised values, a forecast revision compares an earlier forecast with
+the next comparable vintage, and a forecast error compares a forecast with a
+later realisation. `readreq` keeps these operations separate and retains the
+release IDs, statuses, horizons, source fields and selection rule in the
+result.
+
+The observations below are deliberately small synthetic values. They exercise
+the public comparison functions without presenting invented numbers as
+official REQ data.
+
+## Build a small synthetic vintage set
+
+```{r synthetic-observations}
+library(readreq)
+
+synthetic_observation <- function(status, release_id, release_date, value, hash) {
+  data.frame(
+    product = "synthetic_req_example",
+    release_id = release_id,
+    release_date = as.Date(release_date),
+    dataset = "synthetic_req_example",
+    source_dataset = if (status %in% c("estimate", "historical")) {
+      "synthetic_history"
+    } else {
+      "synthetic_forecast"
+    },
+    source_asset = if (status %in% c("estimate", "historical")) {
+      "historical"
+    } else {
+      "forecast"
+    },
+    source_sheet = "Synthetic example",
+    table_id = "synthetic_export_value",
+    table_title = "Synthetic export value",
+    record_role = "canonical",
+    geography_type = "country",
+    geography = "Australia",
+    commodity = "Synthetic commodity",
+    concept = "export_value",
+    period = "2025-26",
+    period_start = as.Date("2025-07-01"),
+    period_end = as.Date("2026-06-30"),
+    period_basis = "australian_financial_year",
+    period_status = status,
+    status_source = "synthetic example",
+    price_basis = "nominal",
+    currency = "AUD",
+    unit = "A$m",
+    value = value,
+    raw_value = as.character(value),
+    missing_reason = NA_character_,
+    footnote_codes = I(list(character())),
+    source_note = "Synthetic vignette data; not official REQ values.",
+    series_id = paste0("synthetic_export_value_", status),
+    observation_key = paste0("synthetic_export_value_", status, "::2025-26"),
+    retrieved_at = as.POSIXct("2026-01-01", tz = "UTC"),
+    sha256 = hash,
+    parser_version = "synthetic",
+    section = "Australia",
+    frequency = "annual",
+    stringsAsFactors = FALSE
+  )
+}
+
+observations <- rbind(
+  synthetic_observation(
+    "forecast", "example-forecast-a", "2025-12-19", 100,
+    paste(rep("a", 64L), collapse = "")
+  ),
+  synthetic_observation(
+    "forecast", "example-forecast-b", "2026-03-20", 104,
+    paste(rep("b", 64L), collapse = "")
+  ),
+  synthetic_observation(
+    "estimate", "example-estimate", "2026-06-26", 110,
+    paste(rep("c", 64L), collapse = "")
+  ),
+  synthetic_observation(
+    "historical", "example-history", "2026-09-25", 112,
+    paste(rep("d", 64L), collapse = "")
+  )
+)
+
+observations[, c("release_id", "release_date", "period_status", "value")]
+```
+
+## Keep the comparison questions separate
+
+```{r comparisons}
+compact <- function(x, columns) {
+  x <- x[, columns, drop = FALSE]
+  row.names(x) <- NULL
+  x
+}
+
+history_revision <- req_history_revision(observations)
+forecast_revision <- req_forecast_revision(observations)
+first_error <- req_forecast_error(observations, realisation = "first")
+latest_error <- req_forecast_error(
+  observations, realisation = "latest_revised"
+)
+
+compact(
+  history_revision,
+  c("old_release_id", "new_release_id", "status_transition", "absolute_change")
+)
+compact(
+  forecast_revision,
+  c("old_release_id", "new_release_id", "status_transition", "absolute_change")
+)
+compact(
+  first_error,
+  c("old_release_id", "new_release_id", "comparison", "error")
+)
+compact(
+  latest_error,
+  c("old_release_id", "new_release_id", "comparison", "error")
+)
+```
+
+`realisation = "first"` selects the first later estimate or historical value;
+`"latest_revised"` selects the latest later realised value and labels the
+operation accordingly. `compare_req_vintages()` is a convenience wrapper when
+you want one comparison family from an already parsed multi-vintage data
+frame.
+
+```{r wrapper}
+compact(
+  compare_req_vintages(
+    data = observations,
+    comparison = "forecast_revision"
+  ),
+  c("old_release_id", "new_release_id", "comparison", "selection_rule")
+)
+```
+
+With official data, construct `observations` by reading exact release IDs and
+persist the source hashes with the result. `"latest"` is useful for
+exploration but is not a stable vintage pin. Comparisons require matching
+semantic dimensions (period, unit, currency, price basis, geography and
+frequency); non-unique joins fail instead of choosing by row order.

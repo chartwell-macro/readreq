@@ -1,0 +1,47 @@
+Package: readreq
+Type: Package
+Title: Reproducible Resources and Energy Quarterly Data
+Version: 0.1.0
+Authors@R: person("Chartwell", "Macro", role = c("aut", "cre", "cph"),
+    email = "chartwellmacro@gmail.com")
+Description: Provides reproducible access to the Australian Government's
+    Resources and Energy Quarterly (REQ) releases. The bundled catalogue
+    contains all 59 editions from the series' inaugural September 2011 release
+    through June 2026; historical observation periods are series-specific and
+    can precede the edition dates. It downloads and content-addresses forecast,
+    historical and report assets, parses edition-specific structured workbook
+    tables, validates source and output contracts, and compares reported,
+    canonical, current and vintage views. Exact source URLs, hashes, periods,
+    statuses, units and provenance are retained so cached releases can be
+    replayed offline. Two audited early-edition table fallbacks use the
+    'pdftotext' executable when no structured workbook is available. The
+    official source is available at
+    <https://www.industry.gov.au/publications/resources-and-energy-quarterly>.
+Depends:
+    R (>= 4.1.0)
+License: MIT + file LICENSE
+URL: https://chartwell-macro.github.io/readreq/,
+    https://github.com/chartwell-macro/readreq
+BugReports: mailto:chartwellmacro@gmail.com
+Encoding: UTF-8
+RoxygenNote: 7.3.3
+Roxygen: list(markdown = TRUE)
+Imports:
+    data.table,
+    digest,
+    httr2,
+    jsonlite,
+    parallel,
+    readxl,
+    xml2
+Suggests:
+    ggplot2 (>= 3.4.0),
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    withr
+VignetteBuilder: knitr
+SystemRequirements: Optional: Poppler (the 'pdftotext' executable) for the
+    report-table fallback.
+Config/testthat/edition: 3
+Config/Needs/website: r-lib/pkgdown

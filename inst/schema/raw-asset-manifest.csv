@@ -1,0 +1,16 @@
+field,type,required,meaning
+product,character,true,Stable source product
+release_id,character,true,Parent release
+asset_type,character,true,Forecast historical or report
+source_url,character,true,Exact official URL
+source_filename,character,true,Link or server filename
+detected_format,character,true,Detected bytes format
+content_type,character,true,HTTP content type
+retrieved_at,POSIXct<UTC>,true,UTC retrieval time
+etag,character,false,HTTP entity tag
+last_modified,character,false,HTTP last modified value
+sha256,character,true,Lowercase SHA-256
+bytes,integer64,true,Asset size
+local_path,character,true,Content-addressed cache path
+validation_status,character,true,Valid warning or rejected
+unsupported_reason,character,false,Explicit blocker

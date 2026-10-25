@@ -1,0 +1,110 @@
+---
+title: "Cache and offline use"
+description: "Use exact release IDs, immutable caches and local inputs for reproducible REQ workflows."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Cache and offline use}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+`readreq` separates release selection, asset download, parsing and analysis.
+This makes it possible to retrieve an exact edition once, record its source
+hashes, and replay the parsed result without live network access.
+
+## Choose a cache
+
+`req_cache_dir()` returns the platform-appropriate user cache location using
+`tools::R_user_dir("readreq", "cache")`. For a vignette, use a temporary
+directory so that rendering is isolated and leaves no project or home files.
+
+```{r cache-location}
+library(readreq)
+
+req_cache_dir()
+
+cache_dir <- tempfile("readreq-offline-cache-")
+dir.create(cache_dir, recursive = TRUE)
+```
+
+Raw assets are content-addressed and immutable. Parsed artifacts include the
+release or local input identity, source hash, parser version and selection;
+current-view artifacts additionally include the view policy. Re-fetching or
+reparsing a requested asset does not delete an existing raw snapshot. Cache storage can
+therefore grow over time: `readreq` has no automatic pruning or cleanup API.
+Use a caller-selected temporary or project cache when appropriate, and remove
+only that path manually after confirming that no read or download is using it.
+Do not delete a shared/default cache while another process may hold a lock or
+be replaying an artifact.
+
+Workbook parsing defaults to one worker (`getOption("readreq.workers", 1L)`).
+Leave that default in portable workflows; if a caller explicitly opts into
+parallel parsing on a platform that supports it, configure no more than two
+workers and account for the additional memory use.
+
+## Replay a local input
+
+The same cache contract applies to a local workbook. The second read below
+returns the same object from the parsed cache and does not need a network
+request.
+
+```{r offline-replay}
+forecast_path <- system.file(
+  "extdata", "readreq-example-forecast.xlsx", package = "readreq"
+)
+if (!nzchar(forecast_path)) {
+  forecast_path <- file.path(
+    "..", "inst", "extdata", "readreq-example-forecast.xlsx"
+  )
+}
+stopifnot(nzchar(forecast_path), file.exists(forecast_path))
+
+first <- read_req_forecasts(
+  forecast_path, view = "canonical", cache_dir = cache_dir
+)
+second <- read_req_forecasts(
+  forecast_path, view = "canonical", cache_dir = cache_dir
+)
+
+stopifnot(identical(first, second))
+c(rows = nrow(second), parsed_cache_files = length(list.files(
+  cache_dir, recursive = TRUE, all.files = FALSE
+)))
+```
+
+An exact cached release can be read offline after all requested assets have
+been retrieved. A partial cache cannot satisfy a request for a missing asset;
+the package reports a typed asset or download failure instead of returning an
+incomplete release. Keep the exact `release_id`, package version, source
+hashes and parser version with downstream outputs.
+
+## Network and credentials
+
+For catalogue release IDs, source assets are requested from the bundled HTTPS
+URLs. A supplied one-row manifest or custom transport can use another
+controlled source. No REQ data-source credential, API token or browser session
+is required by the default transport. `"latest"` is a
+convenience selector and can change when an installed package/catalogue update
+adds a newer edition; use an
+exact ID such as `"req-2026-06"` for a pinned analysis. Downloads use bounded
+timeouts and retries, and the default tests and vignettes are offline.
+
+The following is the only live call in this article. It is opt-in so that
+CRAN checks, offline builds and ordinary vignette rendering never contact the
+source site. It is illustrative rather than required for the offline path.
+
+```{r live-download}
+if (identical(Sys.getenv("READREQ_LIVE_EXAMPLES"), "true")) {
+  live_cache <- tempfile("readreq-live-cache-")
+  download_req_release(
+    "req-2026-06",
+    assets = c("forecast", "historical"),
+    cache_dir = live_cache
+  )
+}
+```
+
+Official workbooks and reports are not bundled by this package. Source rights
+and exclusions can differ by edition; consult the exact release terms and
+`req_attribution()` before sharing source-derived material. Synthetic example
+workbooks are reduced and derived fixtures and are not official data.

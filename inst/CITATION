@@ -1,0 +1,26 @@
+citHeader("To cite readreq in publications, use:")
+
+bibentry(
+  bibtype = "Manual",
+  title = "readreq: Reproducible Resources and Energy Quarterly Data",
+  author = person("Chartwell", "Macro"),
+  year = "2026",
+  url = "https://github.com/chartwell-macro/readreq",
+  note = paste("R package version", meta$Version),
+  textVersion = paste0(
+    "Chartwell Macro (2026). readreq: Reproducible Resources and Energy Quarterly ",
+    "Data. R package version ", meta$Version, ". ",
+    "https://github.com/chartwell-macro/readreq."
+  )
+)
+
+citFooter(paste(
+  "When using data downloaded through readreq, also cite the specific",
+  "Resources and Energy Quarterly edition and its official landing page:",
+  "https://www.industry.gov.au/publications/resources-and-energy-quarterly.",
+  "Source rights are edition-specific; consult the rights notice for the",
+  "edition used. For example, the June 2026 report states CC BY 4.0 with",
+  "exclusions for the Commonwealth Coat of Arms, third-party content,",
+  "logos and trademarks. Package code: MIT, copyright Chartwell Macro. Official",
+  "source data and third-party material retain their own rights and terms."
+))

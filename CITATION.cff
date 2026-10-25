@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: >-
+  If you use readreq in your work, please cite it using the metadata below.
+title: "readreq: Reproducible Resources and Energy Quarterly Data"
+type: software
+version: 0.1.0
+authors:
+  - family-names: Macro
+    given-names: Chartwell
+license: MIT
+repository-code: "https://github.com/chartwell-macro/readreq"
+issue-tracker: "mailto:chartwellmacro@gmail.com"
+abstract: >-
+  Provides reproducible access to the Australian Government's Resources and
+  Energy Quarterly releases, including release metadata, forecast and
+  historical workbook data, validation, provenance, and offline replay of
+  cached releases.
+preferred-citation:
+  type: software
+  title: "readreq: Reproducible Resources and Energy Quarterly Data"
+  authors:
+    - family-names: Macro
+      given-names: Chartwell
+  version: 0.1.0
+  license: MIT
+  repository-code: "https://github.com/chartwell-macro/readreq"

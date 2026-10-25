@@ -1,0 +1,108 @@
+---
+title: "Periods, statuses, missingness and troubleshooting"
+description: "Interpret normalized REQ dimensions and diagnose typed readreq failures."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Periods, statuses, missingness and troubleshooting}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+REQ mixes calendar years, Australian financial years, quarters and months.
+The observation contract keeps the normalized period alongside
+`period_start`, `period_end`, `period_basis` and `frequency`. Status, unit,
+currency, price basis and geography are semantic dimensions, not display
+decorations.
+
+## Period statuses and missing values
+
+Status suffixes are explicit when the source publishes them. A date alone is
+not used to guess a status.
+
+```{r status}
+library(readreq)
+
+req_status(c("2025-26s", "2026-27f", "2029-30z", "2024-25"))
+```
+
+Missing markers remain distinct from numeric zero. The returned reason is
+controlled vocabulary; the original token is retained by parsed observations
+in `raw_value`.
+
+```{r missingness}
+markers <- c(NA, "", "na", "n/a", "not available", "c", "..", "12")
+data.frame(
+  raw_value = markers,
+  missing_reason = req_missing_reason(markers),
+  stringsAsFactors = FALSE
+)
+```
+
+The synthetic workbook makes the same contract visible on real parser output.
+
+```{r fixture-contract}
+forecast_path <- system.file(
+  "extdata", "readreq-example-forecast.xlsx", package = "readreq"
+)
+if (!nzchar(forecast_path)) {
+  forecast_path <- file.path(
+    "..", "inst", "extdata", "readreq-example-forecast.xlsx"
+  )
+}
+stopifnot(nzchar(forecast_path), file.exists(forecast_path))
+
+period_cache <- tempfile("readreq-period-cache-")
+dir.create(period_cache, recursive = TRUE)
+forecast <- read_req_forecasts(
+  forecast_path,
+  view = "reported",
+  cache_dir = period_cache
+)
+
+head(
+  forecast[
+    !is.na(forecast$missing_reason),
+    c("period", "period_status", "unit", "value", "raw_value", "missing_reason")
+  ]
+)
+```
+
+## Troubleshooting by condition class
+
+Failures are typed so that callers can distinguish discovery, transport,
+format, workbook-schema, cell-parse, unit, stitching and general validation
+problems. Start with the condition class and message, then record the exact
+release ID, asset, sheet or table, cache directory and a small reproducible
+input.
+
+```{r typed-error}
+failure <- tryCatch(
+  req_missing_reason("unexpected marker"),
+  error = function(e) list(
+    class = class(e),
+    message = conditionMessage(e)
+  )
+)
+failure
+```
+
+Useful responses include:
+
+- `req_release_discovery_error` or `req_download_error`: check HTTPS access,
+  the exact release ID and whether an exact cache can be replayed offline.
+- `req_asset_format_error`: verify that the downloaded bytes are the expected
+  XLS/XLSX/PDF asset, not an HTML error page.
+- `req_workbook_schema_error`, `req_sheet_parse_error`, or
+  `req_period_parse_error`: preserve the original workbook and report the
+  release, sheet and table; do not rename sheets or drop unexplained cells.
+- `req_unit_conflict_error` or `req_stitch_conflict_error`: use
+  `view = "reported"` to inspect source presentations before relying on a
+  canonical or current view.
+- `req_validation_error`: inspect the returned context and repair the input or
+  source selection rather than suppressing the failure.
+
+Only the two audited report-only editions use the PDF table fallback. If that
+path is selected, install Poppler so that `pdftotext` is available; Poppler is
+not required for ordinary workbook reads. Official report PDFs and workbook
+values are not fixtures. Their rights and exclusions remain edition-specific,
+and `req_attribution()` provides package-level attribution guidance.

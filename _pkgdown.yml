@@ -1,0 +1,102 @@
+url: https://chartwell-macro.github.io/readreq/
+
+destination: site
+
+template:
+  bootstrap: 5
+  bslib:
+    bg: "#FFFFFF"
+    fg: "#1F2933"
+    primary: "#0B5563"
+
+home:
+  title: "readreq"
+  description: "Reproducible access to all 59 audited Resources and Energy Quarterly editions from the inaugural September 2011 edition through June 2026, with series-specific historical observations that can reach 2000 or earlier."
+
+authors:
+  "Chartwell Macro":
+    href: https://github.com/chartwell-macro
+
+development:
+  mode: auto
+
+repo:
+  url:
+    home: https://github.com/chartwell-macro/readreq/
+    issue: mailto:chartwellmacro@gmail.com
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
+  components:
+    intro:
+      text: "Get started"
+      href: articles/getting-started.html
+    reference:
+      text: "Reference"
+      href: reference/index.html
+    articles:
+      text: "Guides"
+      menu:
+        - text: "Getting started"
+          href: articles/getting-started.html
+        - text: "Reading REQ workbooks"
+          href: articles/reading-workbooks.html
+        - text: "Cache and offline use"
+          href: articles/cache-and-offline.html
+        - text: "Periods, statuses and missingness"
+          href: articles/periods-statuses-missingness.html
+        - text: "Comparing REQ vintages"
+          href: articles/comparing-vintages.html
+    news:
+      text: "Changelog"
+      href: news/index.html
+    github:
+      text: "GitHub"
+      href: https://github.com/chartwell-macro/readreq/
+
+# Only the five public vignettes below are listed. Engineering notes under
+# dev-docs/ are intentionally excluded from the public article index.
+articles:
+  - title: "Learn readreq workflows"
+    desc: "Task-oriented guides for discovering, reading, caching and comparing REQ data."
+    navbar: "Readreq workflows"
+    contents:
+      - getting-started
+      - reading-workbooks
+      - cache-and-offline
+      - periods-statuses-missingness
+      - comparing-vintages
+
+reference:
+  - title: "Start here"
+    contents:
+      - readreq-package
+  - title: "Discover and read releases"
+    contents:
+      - list_req_releases
+      - download_req_release
+      - read_req
+      - read_req_forecasts
+      - read_req_history
+  - title: "Explore sources and observations"
+    contents:
+      - req_source_catalog
+      - req_series_catalog
+      - req_status
+      - req_missing_reason
+  - title: "Validate and reproduce"
+    contents:
+      - validate_req_release
+      - req_observation_schema
+      - req_release_manifest_schema
+      - req_raw_asset_manifest_schema
+      - req_cache_dir
+      - req_attribution
+  - title: "Compare vintages and forecast performance"
+    contents:
+      - compare_req_vintages
+      - req_history_revision
+      - req_forecast_revision
+      - req_forecast_error

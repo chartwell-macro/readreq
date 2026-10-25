@@ -1,0 +1,67 @@
+Package code and package-authored synthetic fixtures
+----------------------------------------------------
+
+Copyright: Chartwell Macro
+License: MIT; see LICENSE.
+
+Official-data-derived documentation chart
+-----------------------------------------
+
+File: man/figures/time-series-chart-1.png
+
+This chart is a package-authored visual adaptation of official quarterly iron
+ore export-volume series. It was generated through readreq's public interfaces
+from:
+
+- the req-2026-06 historical workbook, table
+  history_commodity_iron_ore_steel, commodity iron_ore_steel, concept
+  exports_quantity_iron_ore_b_total_iron_ore, geography Australia and
+  quarterly frequency; and
+- the req-2024-03, req-2025-03 and req-2026-06 forecast workbooks, table
+  forecast_quarterly_export_volumes, commodity iron_ore, concept
+  export_volume and geography Australia.
+
+The source workbook SHA-256 values are:
+
+- req-2024-03 forecast:
+  27a759024b426c95bf37adc800d4524260d7bd3e56a9883c0328b6c4c0f7cbb5
+- req-2025-03 forecast:
+  5ae27bcedae6f58f39c2b4cda175dcf01a29667b8522d57f50dda6f48880d2c6
+- req-2026-06 forecast:
+  011d09f15d401830845bf9abf13b3bd2e0baf4bc95ea647bdd03246fe83b01fa
+- req-2026-06 historical:
+  d78ba67562f90fd42a137910ed4839aa259a29290ea609b406abe94455ccfc77
+
+Source attribution:
+
+Department of Industry, Science and Resources, Commonwealth of Australia,
+Resources and Energy Quarterly March 2024; Resources and Energy Quarterly
+March 2025; and Resources and Energy Quarterly June 2026.
+
+The table source notes also credit Australian Bureau of Statistics,
+International Trade in Goods and Services, Australia, Cat. No. 5368.0; AME;
+company reports; World Steel Association; and Bloomberg. Those third parties
+retain any rights they hold in their underlying content.
+
+Source and rights pages:
+
+https://www.industry.gov.au/publications/resources-and-energy-quarterly-march-2024
+https://www.industry.gov.au/publications/resources-and-energy-quarterly-march-2025
+https://www.industry.gov.au/publications/resources-and-energy-quarterly-june-2026
+https://www.abs.gov.au/privacy-and-legals
+https://creativecommons.org/licenses/by/4.0/
+
+Each named REQ publication states that its material is licensed under Creative
+Commons Attribution 4.0 International (CC BY 4.0), except the Commonwealth
+Coat of Arms, third-party content, logos, material protected by trade mark, and
+other material noted in the publication. The ABS states that material on its
+website is provided under CC BY 4.0, except the Commonwealth Coat of Arms, the
+ABS logo, trade-mark-protected material, unit-record data and third-party
+content. This chart contains no source logo, Coat of Arms, unit-record data or
+decorative publication content. The source-stated exclusions and third-party
+rights continue to apply; this notice does not assert that excluded underlying
+content is CC BY 4.0.
+
+The chart and the official source material are not relicensed under the
+package's MIT licence. The official workbook itself and extracted data rows are
+not bundled with readreq.

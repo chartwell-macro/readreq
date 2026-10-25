@@ -1,0 +1,9 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.DS_Store
+README.html
+/*.tar.gz
+/*.Rcheck
+/site/

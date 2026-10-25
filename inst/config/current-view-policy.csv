@@ -1,0 +1,8 @@
+policy_version,semantic_family,status,source_priority,reason,test_fixture
+1,completed_history,historical,historical,Historical workbook owns completed periods,phase4_required
+1,estimates,estimate,forecast,Forecast workbook publishes explicit estimates,phase4_required
+1,forecasts,forecast,forecast,Forecast workbook owns forecasts,phase4_required
+1,projections,projection,forecast,Forecast workbook owns projections,phase4_required
+1,forecast_only_concept,all,forecast,Retain concepts absent from history,phase4_required
+1,history_only_concept,all,historical,Retain detailed histories absent from forecast,phase4_required
+1,unresolved_collision,all,conflict,Never choose by file order,phase4_required

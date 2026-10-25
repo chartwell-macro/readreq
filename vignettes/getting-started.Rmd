@@ -1,0 +1,250 @@
+---
+title: "Getting started with readreq"
+description: "Find a Resources and Energy Quarterly release, read a time series and chart it."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with readreq}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+`readreq` gives analysts a reproducible way to select, cache, parse and
+compare the Australian Government's Resources and Energy Quarterly (REQ).
+Use an exact release ID when a result must be reproducible; use `"latest"`
+only when an analysis may follow the newest edition supplied by a future
+installed package/catalogue update.
+
+## Understand the coverage dates
+
+**REQ itself begins with the September 2011 edition.** The installed catalogue
+contains every audited REQ edition from then through June 2026: September and
+December 2011, all four quarterly editions in every year from 2012 through
+2025, and June 2026. That is 59 editions—14 March, 15 June, 15 September and 15
+December editions—not a March-only collection. There is no 2010 or 2000 REQ
+edition. Earlier ABARE/ABARES publications are predecessor products with
+different source contracts, not missing REQ editions.
+
+Publication coverage is not observation coverage. Historical tables inside
+these editions can contain observations from 2000 or earlier, and the first
+available period differs by table and series. For example, the quarterly iron
+ore export-volume series charted below begins in 1990-Q1. Inspect
+`period_start`, `period_end` and source metadata in the returned rows; use
+`req_series_catalog()` when exploring an edition's available series.
+
+Asset coverage also varies. Fifty-seven editions have at least one structured
+workbook surface. `req-2011-12` and `req-2013-03` instead use a report-backed,
+audited Key macroeconomic assumptions fallback. Some early editions use
+statistical and commodity workbooks, some later editions expose forecast data
+without historical data, and 36 expose forecast, historical and report assets.
+Inspect `asset_roles` before choosing a reader; do not assume that every
+edition has both forecast and historical workbooks.
+
+## Find releases and source tables
+
+The release catalogue and parser catalogue are installed package data, so
+this first step runs locally.
+
+```{r catalogue}
+library(readreq)
+
+releases <- list_req_releases(supported_only = TRUE)
+stopifnot(nrow(releases) == 59L)
+
+release_summary <- releases[c("release_id", "release_date", "support_status")]
+head(release_summary, 3L)
+tail(release_summary, 3L)
+
+report_only <- vapply(
+  releases$asset_roles,
+  function(x) identical(x, "report"),
+  logical(1)
+)
+releases[report_only, c("release_id", "edition", "support_note")]
+```
+
+`req_source_catalog()` describes the workbook sheet and table families that
+the parser knows how to read.
+
+```{r source-catalogue}
+source_catalog <- req_source_catalog()
+source_catalog[c("source_dataset", "source_label", "parser_family")][1:6, ]
+```
+
+## First local read
+
+The package includes reduced, package-authored synthetic workbooks for
+examples. They contain the audited structural patterns needed by the parser
+and keep the workflow offline in a clean installation. Official workbook
+values and report material remain with their edition-specific sources.
+
+```{r first-read}
+forecast_path <- system.file(
+  "extdata", "readreq-example-forecast.xlsx", package = "readreq",
+  mustWork = TRUE
+)
+
+cache_dir <- tempfile("readreq-getting-started-cache-")
+dir.create(cache_dir, recursive = TRUE)
+forecast <- read_req_forecasts(
+  forecast_path,
+  view = "reported",
+  cache_dir = cache_dir
+)
+
+c(
+  rows = nrow(forecast),
+  columns = ncol(forecast),
+  sheets = length(unique(forecast$source_sheet))
+)
+forecast[
+  seq_len(min(6L, nrow(forecast))),
+  c("release_id", "source_sheet", "table_id", "period", "period_status", "unit", "value")
+]
+```
+
+The returned observations follow `req_observation_schema()`. Important
+provenance fields include the release, source asset and sheet, content hash,
+parser version, normalized period and missing-value reason. A missing source
+value stays `NA`, preserving the distinction between missingness and zero.
+
+```{r output-contract}
+schema <- req_observation_schema()
+stopifnot(all(schema$field %in% names(forecast)))
+schema[schema$required, c("field", "type")]
+```
+
+## Retrieve and chart a time series
+
+This real workflow puts the complete quarterly iron ore export-volume history
+available in the June 2026 workbook on one chart with forecasts from the March
+2024, March 2025 and June 2026 REQ editions. The historical line contains 145
+observations from 1990-Q1 through 2026-Q1; the three forecast vintages show how
+the outlook changed. The first read of each official workbook downloads it to
+the persistent package cache; subsequent calls replay that content-addressed
+asset.
+
+```{r time-series-data, eval=FALSE}
+releases <- list_req_releases(supported_only = TRUE)
+vintage_ids <- c("req-2024-03", "req-2025-03", "req-2026-06")
+releases[
+  releases$release_id %in% vintage_ids,
+  c("release_id", "release_date", "asset_roles")
+]
+
+sources <- req_source_catalog()
+sources[
+  sources$table_id %in% c(
+    "history_commodity_iron_ore_steel",
+    "forecast_quarterly_export_volumes"
+  ),
+  c("source_dataset", "source_label", "table_id", "parser_family")
+]
+
+history <- read_req_history(
+  "req-2026-06",
+  tables = "history_commodity_iron_ore_steel",
+  commodities = "iron_ore_steel",
+  concepts = "exports_quantity_iron_ore_b_total_iron_ore",
+  geography = "Australia",
+  frequency = "quarterly",
+  view = "canonical",
+  cache_dir = req_cache_dir()
+)
+
+history <- history[
+  !is.na(history$value), c("period_start", "value")
+]
+history$value <- history$value / 1000
+history$series <- "Historical"
+
+vintage_labels <- setNames(
+  c("REQ March 2024", "REQ March 2025", "REQ June 2026"),
+  vintage_ids
+)
+forecasts <- do.call(rbind, lapply(vintage_ids, function(id) {
+  x <- read_req_forecasts(
+    id,
+    sheets = "forecast_quarterly_export_volumes",
+    commodities = "iron_ore",
+    concepts = "export_volume",
+    geography = "Australia",
+    view = "canonical",
+    cache_dir = req_cache_dir()
+  )
+  x <- x[
+    !is.na(x$value) & x$period_status %in% c("forecast", "projection"),
+    c("period_start", "value")
+  ]
+  x$series <- vintage_labels[[id]]
+  x
+}))
+
+chart_data <- rbind(history, forecasts)
+chart_data <- chart_data[order(chart_data$series, chart_data$period_start), ]
+chart_data$series <- factor(
+  chart_data$series, levels = c("Historical", unname(vintage_labels))
+)
+```
+
+```{r time-series-chart, eval=FALSE}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  ggplot2::ggplot(
+    chart_data,
+    ggplot2::aes(
+      x = period_start, y = value, colour = series, group = series
+    )
+  ) +
+    ggplot2::geom_line() +
+    ggplot2::labs(
+      title = "Australian iron ore export volumes",
+      subtitle = "Quarterly history and REQ forecast vintages",
+      x = "Quarter",
+      y = "Million tonnes",
+      colour = "Series",
+      caption = "Sources: DISR REQ; ABS Cat. No. 5368.0"
+    ) +
+    ggplot2::theme_minimal(base_size = 13)
+}
+```
+
+```{r include-time-series-chart, echo=FALSE, out.width="100%", fig.alt="Single line chart of Australian quarterly iron ore export volumes: the full 1990-Q1 to 2026-Q1 history and forecast paths from the March 2024, March 2025 and June 2026 REQ editions."}
+chart_file <- file.path("..", "man", "figures", "time-series-chart-1.png")
+if (!file.exists(chart_file)) {
+  chart_file <- file.path("man", "figures", "time-series-chart-1.png")
+}
+knitr::include_graphics(chart_file)
+```
+
+The checked-in figure was generated from this exact public-API workflow so
+article and package builds do not require the network. The official workbooks
+and extracted rows are not bundled. History is taken from the June 2026
+historical workbook and converted from kt to million tonnes; only rows marked
+`forecast` or `projection` are retained for each forecast vintage. The table
+notes credit the Australian Bureau of Statistics (ABS), DISR and other named
+sources. See the [March 2024](https://www.industry.gov.au/publications/resources-and-energy-quarterly-march-2024),
+[March 2025](https://www.industry.gov.au/publications/resources-and-energy-quarterly-march-2025)
+and [June 2026](https://www.industry.gov.au/publications/resources-and-energy-quarterly-june-2026)
+edition pages for the workbooks and source terms. Use
+`req_series_catalog()` for broader interactive exploration.
+
+## Installation, network and rights
+
+Until a CRAN release is accepted, install the package from its GitHub
+repository when you have access, or from a local source tree. The installed
+release catalogue is available offline; catalogue asset downloads use public
+HTTPS endpoints without a data-source credential, token or API key. A
+supplied local input or custom transport can use another controlled source.
+The default cache is managed by `tools::R_user_dir()`; examples use a
+temporary cache so that rendering does not write to a home or project
+directory.
+
+**Package code and package-authored synthetic fixtures: MIT, copyright Chartwell
+F.** The iron ore figure above is derived from official March 2024, March 2025
+and June 2026 forecast tables and the June 2026 historical table; it is not
+covered by the package's MIT licence. Each source publication states CC BY 4.0
+subject to named exclusions. The tables credit ABS Cat. No. 5368.0, DISR and
+other named sources. The chart contains no source logos or Coat of Arms.
+Official REQ workbooks and reports are not relicensed by `readreq`; check the
+terms attached to the exact edition and use `req_attribution()` before
+redistributing derived results. The installed `COPYRIGHTS` file records the
+figure's provenance and rights boundary.

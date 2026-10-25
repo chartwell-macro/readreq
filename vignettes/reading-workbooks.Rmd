@@ -1,0 +1,120 @@
+---
+title: "Reading REQ workbooks"
+description: "Read forecast and historical workbooks, select tables and inspect the observation contract."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Reading REQ workbooks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+REQ editions normally publish separate forecast and historical workbooks.
+Use `read_req_forecasts()` and `read_req_history()` when the source surface
+matters, or use `read_req()` with an exact release ID when a coherent combined
+view is needed. The examples below use the package's small synthetic
+workbooks, so they parse without discovery, download or credentials.
+
+## Read both workbook surfaces
+
+```{r read-workbooks}
+library(readreq)
+
+forecast_path <- system.file(
+  "extdata", "readreq-example-forecast.xlsx", package = "readreq"
+)
+history_path <- system.file(
+  "extdata", "readreq-example-history.xlsx", package = "readreq"
+)
+if (!nzchar(forecast_path)) {
+  forecast_path <- file.path(
+    "..", "inst", "extdata", "readreq-example-forecast.xlsx"
+  )
+}
+if (!nzchar(history_path)) {
+  history_path <- file.path(
+    "..", "inst", "extdata", "readreq-example-history.xlsx"
+  )
+}
+stopifnot(
+  nzchar(forecast_path), file.exists(forecast_path),
+  nzchar(history_path), file.exists(history_path)
+)
+
+cache_dir <- tempfile("readreq-workbook-cache-")
+dir.create(cache_dir, recursive = TRUE)
+forecast <- read_req_forecasts(
+  forecast_path, view = "reported", cache_dir = cache_dir
+)
+history <- read_req_history(
+  history_path, view = "reported", cache_dir = cache_dir
+)
+
+c(forecast_rows = nrow(forecast), history_rows = nrow(history))
+table(forecast$period_status, useNA = "ifany")
+table(history$frequency, useNA = "ifany")
+```
+
+`view = "reported"` preserves admitted source presentations. The
+asset-specific readers also support `view = "canonical"`, which resolves
+documented within-workbook duplication. `read_req(..., view = "current")`
+applies the checked-in precedence policy across forecast and historical
+assets when an exact release bundle is available.
+
+## Select stable tables and filters
+
+Table IDs are preferable to relying on workbook order. Source aliases are
+also accepted where they are documented by the installed source catalogue.
+
+```{r select-tables}
+iron_ore <- read_req_forecasts(
+  forecast_path,
+  sheets = "forecast_iron_ore",
+  commodities = "Iron ore",
+  view = "canonical",
+  cache_dir = cache_dir
+)
+
+monthly <- read_req_history(
+  history_path,
+  tables = "history_monthly_benchmark_prices",
+  frequency = "monthly",
+  view = "canonical",
+  cache_dir = cache_dir
+)
+
+list(
+  forecast_tables = unique(iron_ore$table_id),
+  history_tables = unique(monthly$table_id),
+  forecast_columns = names(iron_ore),
+  history_columns = names(monthly)
+)
+```
+
+Filters reduce the selected output; they do not change the semantic identity
+of a series. `series_id` identifies the semantic dimensions, while
+`observation_key` combines that identity with the target period. Use
+`req_observation_schema()` when a downstream table or validation step needs
+the complete field contract.
+
+```{r inspect-contract}
+schema <- req_observation_schema()
+schema[, c("field", "type", "required")]
+
+head(
+  iron_ore[, c(
+    "series_id", "observation_key", "period", "period_start", "period_end",
+    "period_status", "unit", "value", "source_dataset", "source_sheet",
+    "sha256", "parser_version"
+  )]
+)
+```
+
+## Reports and unsupported structures
+
+The normal path reads workbook assets; it does not OCR report PDFs. The two
+report-only editions (`req-2011-12` and `req-2013-03`) use an audited report
+table fallback. That fallback requires the `pdftotext` executable from
+Poppler and exact audited PDF bytes. Poppler is not needed for ordinary
+workbook reads. Unknown workbook layouts, unexplained values in numeric
+regions and ambiguous units fail with typed conditions rather than silently
+guessing a parser result.

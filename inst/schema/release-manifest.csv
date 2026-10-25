@@ -1,0 +1,16 @@
+field,type,required,meaning
+product,character,true,Stable source product
+release_id,character,true,Stable exact vintage identifier
+release_date,Date,true,Official landing-page publication date
+edition,character,true,Published edition label
+landing_url,character,true,Official release page
+asset_roles,list<character>,true,Discovered asset roles
+asset_status,character,true,Complete partial or invalid
+support_status,character,true,Supported discovered-unverified or unsupported
+unsupported_reason,character,false,Explicit blocker for unsupported rows
+discovered_at,POSIXct<UTC>,true,UTC discovery time
+discovery_version,character,true,Discovery/parser contract version
+warning,character,true,Source anomaly or cadence gap
+forecast_url,character,false,Official forecast workbook URL
+historical_url,character,false,Official historical workbook URL
+report_url,character,false,Official report PDF URL

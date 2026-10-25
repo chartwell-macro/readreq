@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use readreq, please cite the package and the underlying official source."
+title: "readreq: Reproducible Resources and Energy Quarterly Data"
+type: software
+authors:
+  - family-names: Macro
+    given-names: Chartwell
+version: 0.1.0
+repository-code: "https://github.com/chartwell-macro/readreq"
+license: MIT

@@ -1,0 +1,8 @@
+^\.git$
+^\.gitignore$
+^\.Rcheck$
+^readreq[.]Rcheck$
+^readreq_.*[.]tar[.]gz$
+^_pkgdown\.yml$
+^site$
+^dev-docs$

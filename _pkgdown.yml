@@ -1,0 +1,43 @@
+template:
+  bootstrap: 5
+
+home:
+  title: "readreq"
+  description: "Reproducible Australian Resources and Energy Quarterly data"
+
+development:
+  mode: auto
+
+destination: site
+
+reference:
+  - title: "Package overview"
+    contents:
+      - readreq-package
+  - title: "Discover, download and read"
+    contents:
+      - list_req_releases
+      - download_req_release
+      - read_req
+      - read_req_forecasts
+      - read_req_history
+  - title: "Series and vintage analysis"
+    contents:
+      - req_series_catalog
+      - compare_req_vintages
+      - req_history_revision
+      - req_forecast_revision
+      - req_forecast_error
+  - title: "Validation and contracts"
+    contents:
+      - validate_req_release
+      - req_observation_schema
+      - req_release_manifest_schema
+      - req_raw_asset_manifest_schema
+      - req_source_catalog
+  - title: "Metadata and utilities"
+    contents:
+      - req_attribution
+      - req_cache_dir
+      - req_status
+      - req_missing_reason

@@ -1,0 +1,29 @@
+---
+title: "Understanding the two REQ workbooks"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Understanding the two REQ workbooks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+REQ releases contain forecast and historical workbooks plus a report PDF.
+`read_req_forecasts()` parses 21 data sheets and classifies two metadata
+sheets. `read_req_history()` parses Tables 1–41 across 44 data sheets and
+classifies three metadata sheets. Tables 2, 7 and 24 have separate `(1)` and
+`(2)` source labels; those labels remain provenance while each part gets a
+stable semantic `table_id`.
+
+```{r, eval=FALSE}
+reported <- read_req("req-2026-06", view = "reported")
+table(reported$source_dataset, reported$source_sheet)
+```
+
+Workbook order is not meaningful. Sheet selection uses normalized titles and
+structural fingerprints: header labels, period patterns, section labels and
+unit placement. Unknown structures raise `req_workbook_schema_error`.
+
+Every row retains the exact release, source workbook, source sheet, content
+hash and parser version. The report PDF is cached for narrative and validation;
+it is not used for OCR table extraction.
+

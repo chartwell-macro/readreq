@@ -1,0 +1,39 @@
+---
+title: "All sheet and table families"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{All sheet and table families}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The checked-in source catalogue is the discoverable parser contract:
+
+```{r}
+catalogue <- readreq::req_source_catalog()
+table(catalogue$source_dataset, catalogue$parser_family)
+```
+
+Forecast families are overview, quarterly and commodity. Historical families
+are annual, quarterly, monthly, commodity detail and export markets. Commodity
+profiles retain world/Australia sections, multiple products, geography, units
+and nominal/real price rows.
+
+`sheets` and `tables` accept stable `table_id` values or documented source
+aliases:
+
+```{r, eval=FALSE}
+iron <- read_req_forecasts(
+  "req-2026-06",
+  sheets = c("forecast_iron_ore", "Quarterly prices")
+)
+monthly <- read_req_history(
+  "req-2026-06",
+  tables = "history_monthly_benchmark_prices"
+)
+```
+
+The parser accounts for every non-empty value inside a recognized period grid.
+Control markers are explicitly diagnosed; unexplained text in a numeric region
+is an error.
+

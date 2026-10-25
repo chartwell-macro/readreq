@@ -1,0 +1,32 @@
+---
+title: "Periods, statuses, units and price bases"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Periods, statuses, units and price bases}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+REQ mixes calendar years, Australian financial years, quarters and months.
+`period` is the normalized label; `period_start`, `period_end`,
+`period_basis`, and `frequency` make the interpretation explicit.
+
+Status precedence follows the published workbook:
+
+1. suffix (`s`, `f`, `z`);
+2. row or column header;
+3. title;
+4. note or legend;
+5. landing-page text;
+6. `published-unclassified`.
+
+```{r}
+readreq::req_status(c("2025-26s", "2026-27f", "2029-30z", "2024-25"))
+```
+
+Units, currencies and price bases are series-key dimensions. Nominal and real
+values, CY and FY periods, and AUD and USD values therefore cannot silently
+collapse. Literal `na`, unavailable, confidential and suppressed cells produce
+numeric `NA` while preserving `raw_value` and `missing_reason`; zero remains a
+real published zero.
+

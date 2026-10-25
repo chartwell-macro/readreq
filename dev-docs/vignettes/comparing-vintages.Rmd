@@ -1,0 +1,41 @@
+---
+title: "Comparing REQ vintages and forecast errors"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Comparing REQ vintages and forecast errors}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Revision operations are intentionally separate:
+
+```{r, eval=FALSE}
+observations <- rbind(
+  read_req("req-2025-12", view = "reported"),
+  read_req("req-2026-06", view = "reported")
+)
+
+history <- req_history_revision(observations)
+forecast <- req_forecast_revision(observations)
+first_error <- req_forecast_error(observations, realisation = "first")
+latest_error <- req_forecast_error(
+  observations, realisation = "latest_revised"
+)
+```
+
+The comparison engine uses an internal status-independent semantic join key,
+because public `series_id` deliberately includes status. Results retain old and
+new public series IDs, statuses, status sources, hashes, issue dates, target
+period bounds, issue-to-target horizons, selection rules and source provenance.
+Unit, currency, price basis, period basis and geography must match. Non-unique
+joins fail rather than choosing by row order.
+
+Forecast revision requires the earlier observation to be a forecast or
+projection. It compares that row with the next later comparable vintage, whose
+status may be forecast, projection, estimate or historical. Consequently the
+required December 2025 forecast to June 2026 estimate transition is retained
+instead of being filtered out.
+
+First-realisation error uses the first later estimate or historical value.
+`latest_revised_error` is separately labelled and may change as history is
+revised.

@@ -1,0 +1,10 @@
+parser_family,source_dataset,scope,network_allowed,selection_rule
+metadata,both,Contents About and data directory,false,normalised title plus structural fingerprint
+forecast_overview,forecast,World and Australia macro commodity sector selected exports,false,normalised title plus structural fingerprint
+forecast_quarterly,forecast,Quarterly values prices and volumes,false,normalised title plus structural fingerprint
+forecast_commodity,forecast,Commodity forecast sheets,false,normalised title plus commodity profile and structural fingerprint
+history_annual,historical,Tables 1 to 14,false,semantic title plus structural fingerprint
+history_quarterly,historical,Tables 15 to 20,false,semantic title plus structural fingerprint
+history_monthly,historical,Tables 21 to 22,false,semantic title plus structural fingerprint
+history_commodity,historical,Tables 23 to 37,false,semantic title plus commodity profile and structural fingerprint
+history_markets,historical,Tables 38 to 41,false,semantic title plus structural fingerprint

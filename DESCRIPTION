@@ -1,0 +1,29 @@
+Package: readreq
+Type: Package
+Title: Reproducible Resources and Energy Quarterly Data
+Version: 0.1.0
+Authors@R: person("Chartwell", "Macro", role = c("aut", "cre"),
+    email = "chartwellmacro@gmail.com")
+Description: Discovers, snapshots, parses, validates and compares every table
+    in official Australian Resources and Energy Quarterly forecast and
+    historical workbooks. Immutable content-addressed caches and explicit
+    period, status, unit and provenance fields make exact vintages
+    reproducible offline.
+License: MIT + file LICENSE
+URL: https://github.com/chartwell-macro/readreq
+BugReports: https://github.com/chartwell-macro/readreq/issues
+Encoding: UTF-8
+RoxygenNote: 7.3.3
+Imports:
+    data.table,
+    digest,
+    httr2,
+    jsonlite,
+    parallel,
+    readxl,
+    xml2
+Suggests:
+    testthat (>= 3.0.0),
+    withr
+Config/testthat/edition: 3
+Config/Needs/website: r-lib/pkgdown

@@ -1,0 +1,9 @@
+citHeader("To cite readreq in publications, use:")
+
+bibentry(
+  bibtype = "Manual",
+  title = "readreq: Reproducible Resources and Energy Quarterly Data",
+  author = person("Chartwell", "Macro"),
+  year = "2026",
+  note = paste("R package version", meta$Version)
+)
